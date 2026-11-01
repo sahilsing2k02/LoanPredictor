@@ -6,28 +6,28 @@ Author: Sahil Singh
 import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-import lightgbm as lgb
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'front_end'))
+if not os.path.exists(FRONTEND_DIR):
+    FRONTEND_DIR = os.path.abspath(os.path.join(os.getcwd(), 'front_end'))
 
-candidate_model_paths = [
-    os.path.join(BASE_DIR, 'model.txt'),
-    os.path.join(os.path.dirname(BASE_DIR), 'api', 'model.txt'),
-    os.path.join(os.path.dirname(BASE_DIR), 'back_end', 'model.txt'),
-    os.path.join(os.getcwd(), 'api', 'model.txt'),
-    os.path.join(os.getcwd(), 'back_end', 'model.txt'),
-    'model.txt'
-]
-MODEL_FILE = next((p for p in candidate_model_paths if os.path.exists(p)), candidate_model_paths[0])
+# Load predictor: try pure Python (fastest, no C++ runtime needed), fallback to LightGBM
+try:
+    try:
+        from . import predictor_pure
+    except (ImportError, ValueError):
+        import predictor_pure
 
-candidate_frontend_paths = [
-    os.path.abspath(os.path.join(BASE_DIR, '..', 'front_end')),
-    os.path.abspath(os.path.join(os.getcwd(), 'front_end')),
-    os.path.abspath(os.path.join(os.path.dirname(BASE_DIR), 'front_end'))
-]
-FRONTEND_DIR = next((p for p in candidate_frontend_paths if os.path.exists(p)), candidate_frontend_paths[0])
-
-bst = lgb.Booster(model_file=MODEL_FILE)
+    def predict_model(features):
+        res = predictor_pure.score(features)
+        return float(res[1] if isinstance(res, (list, tuple)) else res)
+except Exception:
+    import lightgbm as lgb
+    model_path = os.path.join(BASE_DIR, 'model.txt')
+    bst = lgb.Booster(model_file=model_path)
+    def predict_model(features):
+        return float(bst.predict([features])[0])
 
 app = Flask(__name__, static_folder=FRONTEND_DIR)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -63,9 +63,9 @@ def predict():
 
     def to_float(val):
         try:
-            return float(val) if val is not None else None
+            return float(val) if val is not None else 0.0
         except (ValueError, TypeError):
-            return None
+            return 0.0
 
     ApplicantIncome = to_float(get_or_none(data, 'ApplicantIncome'))
     CoapplicantIncome = to_float(get_or_none(data, 'CoapplicantIncome'))
@@ -74,7 +74,7 @@ def predict():
     Credit_History = to_float(get_or_none(data, 'Credit_History'))
     Property_Area = get_or_none(data, 'Property_Area')
 
-    features = [[
+    features = [
         ApplicantIncome,
         CoapplicantIncome,
         LoanAmount,
@@ -95,10 +95,10 @@ def predict():
         int(Property_Area == 'Rural'),
         int(Property_Area == 'Semiurban'),
         int(Property_Area == 'Urban')
-    ]]
+    ]
 
-    res = bst.predict(features)
-    return jsonify({'result': float(res[0])})
+    res = predict_model(features)
+    return jsonify({'result': float(res)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

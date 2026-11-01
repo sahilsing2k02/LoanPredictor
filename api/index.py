@@ -10,3 +10,4 @@ from back_end.main import app
 
 # Vercel Serverless Function entry point
 app = app
+
