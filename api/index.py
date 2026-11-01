@@ -1,5 +1,5 @@
 """
-CrediAI - Vercel Serverless Function API Entrypoint
+CrediAI - Vercel Serverless Function & Local API Entrypoint
 Author: Sahil Singh
 """
 
@@ -22,22 +22,62 @@ except (ImportError, ValueError):
     except ImportError:
         from back_end import predictor_pure
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__)
+# Resolve front_end directory candidates
+candidate_dirs = [
+    os.path.join(ROOT_DIR, 'front_end'),
+    os.path.join(CURRENT_DIR, 'front_end'),
+    os.path.join(ROOT_DIR, 'public'),
+    os.path.join(os.getcwd(), 'front_end'),
+    os.path.join(os.getcwd(), 'public')
+]
+FRONTEND_DIR = next((d for d in candidate_dirs if os.path.exists(d)), candidate_dirs[0])
+
+app = Flask(__name__, static_folder=FRONTEND_DIR)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-@app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
-@app.route('/<path:path>', methods=['GET', 'POST'])
-def handler(path):
-    if request.method == 'GET':
-        return jsonify({
-            'status': 'running',
-            'service': 'CrediAI ML Engine (Vercel Serverless)',
-            'author': 'Sahil Singh'
-        })
+@app.route('/', methods=['GET'])
+def home():
+    index_file = os.path.join(FRONTEND_DIR, 'index.html')
+    if os.path.exists(index_file):
+        return send_from_directory(FRONTEND_DIR, 'index.html')
+    return jsonify({
+        'status': 'running',
+        'service': 'CrediAI ML Engine (Vercel Serverless)',
+        'author': 'Sahil Singh'
+    })
 
+@app.route('/api', methods=['GET'])
+@app.route('/api/', methods=['GET'])
+@app.route('/status', methods=['GET'])
+@app.route('/api/status', methods=['GET'])
+def status():
+    return jsonify({
+        'status': 'running',
+        'service': 'CrediAI ML Engine (Vercel Serverless)',
+        'author': 'Sahil Singh'
+    })
+
+@app.route('/<path:filename>', methods=['GET'])
+def static_files(filename):
+    if filename in ('api', 'api/', 'status', 'api/status'):
+        return status()
+    file_path = os.path.join(FRONTEND_DIR, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(FRONTEND_DIR, filename)
+    index_file = os.path.join(FRONTEND_DIR, 'index.html')
+    if os.path.exists(index_file):
+        return send_from_directory(FRONTEND_DIR, 'index.html')
+    return jsonify({'error': f'Not found: {filename}'}), 404
+
+@app.route('/', methods=['POST'])
+@app.route('/api', methods=['POST'])
+@app.route('/api/', methods=['POST'])
+@app.route('/predict', methods=['POST'])
+@app.route('/api/predict', methods=['POST'])
+def predict():
     data = request.get_json(silent=True) or {}
 
     def get_or_none(dictionary, key):

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrediAI — Intelligent Loan Credit Decisioning</title>
+  <link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+  <script src="./vue.js"></script>
+  <script>
+    if (typeof Vue === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"><\/script>');
+    }
+  </script>
+  <style>
+    /* CSS Variables: Light & Dark Theme Support */
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --success-text: #065f46;
+      --success-border: #a7f3d0;
+      
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --danger-text: #991b1b;
+      --danger-border: #fecaca;
+      
+      --bg-page: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --bg-nav: rgba(255, 255, 255, 0.9);
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f8fafc;
+      --bg-input: #ffffff;
+      
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      
+      --border-color: #e2e8f0;
+      --border-focus: #3b82f6;
+      --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+      
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-light: rgba(59, 130, 246, 0.15);
+      --primary-glow: rgba(59, 130, 246, 0.35);
+      
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.12);
+      --success-text: #6ee7b7;
+      --success-border: rgba(16, 185, 129, 0.3);
+      
+      --danger: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.12);
+      --danger-text: #fca5a5;
+      --danger-border: rgba(239, 68, 68, 0.3);
+      
+      --bg-page: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b0f19 100%);
+      --bg-nav: rgba(15, 23, 42, 0.85);
+      --bg-card: #111827;
+      --bg-card-subtle: #1a2234;
+      --bg-input: #172033;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      
+      --border-color: #27354f;
+      --border-focus: #60a5fa;
+      --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: var(--bg-nav);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.9rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary), #2563eb);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.15rem;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* Theme Switch Button */
+    .theme-toggle-btn {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      outline: none;
+      user-select: none;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Main Container */
+    .main-wrapper {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+    }
+
+    .hero-banner {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .hero-banner h2 {
+      font-size: 1.95rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-banner p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 860px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Panels */
+    .panel {
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      padding: 1.75rem;
+    }
+
+    .panel:hover {
+      box-shadow: var(--shadow-hover);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .preset-btn-group {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .btn-preset {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .btn-preset:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Form */
+    .section-subtitle {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-subtle);
+      margin: 1.35rem 0 0.85rem;
+    }
+
+    .section-subtitle:first-of-type {
+      margin-top: 0;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    @media (max-width: 540px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 0.85rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .with-prefix input {
+      padding-left: 2rem;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1rem;
+      padding-right: 2.2rem;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      margin-top: 1.35rem;
+      padding: 0.85rem 1.25rem;
+      background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--primary-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Results Panel */
+    .results-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--bg-card-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.75rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .empty-state p {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      max-width: 260px;
+    }
+
+    /* Decision Card */
+    .decision-card {
+      padding: 1.6rem;
+      border-radius: 14px;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      border: 1px solid;
+    }
+
+    .decision-card.accepted {
+      background: var(--success-light);
+      border-color: var(--success-border);
+      color: var(--success-text);
+    }
+
+    .decision-card.refused {
+      background: var(--danger-light);
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+
+    .decision-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      margin-bottom: 0.5rem;
+    }
+
+    .accepted .decision-badge {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .refused .decision-badge {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .decision-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.4rem;
+    }
+
+    .decision-desc {
+      font-size: 0.85rem;
+      opacity: 0.95;
+      line-height: 1.45;
+    }
+
+    /* Score Meter */
+    .score-meter-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .meter-percentage {
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .meter-percentage.accepted {
+      color: var(--success);
+    }
+
+    .meter-percentage.refused {
+      color: var(--danger);
+    }
+
+    .meter-track {
+      width: 100%;
+      height: 14px;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .meter-fill.accepted {
+      background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+
+    .meter-fill.refused {
+      background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Financial Metrics Breakdown */
+    .metrics-table {
+      width: 100%;
+      font-size: 0.85rem;
+      border-collapse: collapse;
+      margin-top: 0.85rem;
+    }
+
+    .metrics-table tr {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .metrics-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .metrics-table td {
+      padding: 0.75rem 0;
+      color: var(--text-muted);
+    }
+
+    .metrics-table td:last-child {
+      text-align: right;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.75rem;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon">₹</div>
+        <div class="brand-text">
+          <h1>CrediAI Decision Portal</h1>
+          <p>Bank Credit Assessment Engine &bull; Sahil Singh</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button type="button" class="theme-toggle-btn" @click="toggleTheme">
+          <span v-if="theme === 'dark'">☀️ Light Mode</span>
+          <span v-else>🌙 Dark Mode</span>
+        </button>
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          AI Model Online
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-wrapper">
+      <div class="hero-banner">
+        <h2>Automated Loan Risk & Approval Prediction</h2>
+        <p>Evaluate real-time credit default risk using pre-trained machine learning algorithms based on applicant demographics and financial history.</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Input Form Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Applicant Financial Profile</h3>
+            <div class="preset-btn-group">
+              <button type="button" class="btn-preset" @click="loadPreset('prime')">Preset: Prime</button>
+              <button type="button" class="btn-preset" @click="loadPreset('risky')">Preset: Risky</button>
+            </div>
+          </div>
+
+          <form @submit.prevent="call">
+            <!-- Demographics -->
+            <div class="section-subtitle">Demographic Information</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="gender">Applicant Gender</label>
+                <select id="gender" v-model="Gender">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="married">Marital Status</label>
+                <select id="married" v-model="Married">
+                  <option value="Yes">Married (Yes)</option>
+                  <option value="No">Single / Unmarried (No)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dependents">Dependents Count</label>
+                <select id="dependents" v-model="Dependents">
+                  <option value="0">0 Dependents</option>
+                  <option value="1">1 Dependent</option>
+                  <option value="2">2 Dependents</option>
+                  <option value="3+">3+ Dependents</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="education">Educational Status</label>
+                <select id="education" v-model="Education">
+                  <option value="Graduate">Graduate</option>
+                  <option value="Under Graduate">Under Graduate</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="self_employed">Employment Type</label>
+                <select id="self_employed" v-model="Self_employed">
+                  <option value="No">Salaried (Not Self-Employed)</option>
+                  <option value="Yes">Self-Employed / Business</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="property">Property Location</label>
+                <select id="property" v-model="Property_Area">
+                  <option value="Urban">Urban</option>
+                  <option value="Semiurban">Semiurban</option>
+                  <option value="Rural">Rural</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Financials -->
+            <div class="section-subtitle">Financial & Credit Metrics</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="app_income">Applicant Income (Monthly)</label>
+                <div class="input-wrapper with-prefix">
+                  <span class="input-prefix">₹</span>
+                  <input type="number" id="app_income" v-model.number="ApplicantIncome" min="0" step="500" required placeholder="50000">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="coapp_income">Co-Applicant Income</label>
+                <div class="input-wrapper with-prefix">
+                  <span class="input-prefix">₹</span>
+                  <input type="number" id="coapp_income" v-model.number="CoapplicantIncome" min="0" step="500" required placeholder="15000">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="loan_amount">Requested Loan Amount (in ₹ Thousands)</label>
+                <div class="input-wrapper with-prefix">
+                  <span class="input-prefix">₹</span>
+                  <input type="number" id="loan_amount" v-model.number="LoanAmount" min="1" step="10" required placeholder="150">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="loan_term">Loan Term (in Months)</label>
+                <select id="loan_term" v-model.number="Loan_Amount_Term">
+                  <option :value="120">10 Years (120 Months)</option>
+                  <option :value="180">15 Years (180 Months)</option>
+                  <option :value="240">20 Years (240 Months)</option>
+                  <option :value="300">25 Years (300 Months)</option>
+                  <option :value="360">30 Years (360 Months)</option>
+                  <option :value="480">40 Years (480 Months)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="credit_history">Historical Credit Score & Guidelines</label>
+              <select id="credit_history" v-model="Credit_History">
+                <option value="1">Meets Credit Guidelines (Good CIBIL / No Default)</option>
+                <option value="0">Fails Credit Guidelines (Past Defaults / High Risk)</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-submit" :disabled="loading">
+              <span v-if="!loading">⚡ Run Risk & Eligibility Analysis</span>
+              <span v-else>Analyzing Credit Profile...</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- Results Panel -->
+        <section class="panel results-container">
+          <div class="panel-header">
+            <h3 class="panel-title">Decision Intelligence</h3>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="value === null" class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <h4>No Assessment Yet</h4>
+            <p>Fill out the applicant details on the left and click "Run Risk Analysis" to generate the ML recommendation.</p>
+          </div>
+
+          <!-- Active Result -->
+          <div v-else>
+            <!-- Decision Status Card -->
+            <div :class="['decision-card', value >= 0.5 ? 'accepted' : 'refused']">
+              <span class="decision-badge">Model Recommendation</span>
+              <div class="decision-title">
+                {{ value >= 0.5 ? 'APPROVED' : 'DECLINED' }}
+              </div>
+              <p class="decision-desc">
+                {{ value >= 0.5 
+                    ? 'Candidate exhibits low default risk and satisfies automated underwriting standards.' 
+                    : 'Candidate exceeds default risk thresholds. Additional collateral or guarantor required.' }}
+              </p>
+            </div>
+
+            <!-- Probability Meter -->
+            <div class="score-meter-container">
+              <div class="meter-header">
+                <span>Repayment Probability Score</span>
+                <span :class="['meter-percentage', value >= 0.5 ? 'accepted' : 'refused']">
+                  {{ (value * 100).toFixed(1) }}%
+                </span>
+              </div>
+              <div class="meter-track">
+                <div :class="['meter-fill', value >= 0.5 ? 'accepted' : 'refused']" :style="{ width: (value * 100) + '%' }"></div>
+              </div>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="section-subtitle">Financial Summary (INR)</div>
+            <table class="metrics-table">
+              <tr>
+                <td>Combined Monthly Income:</td>
+                <td>{{ formatINR((ApplicantIncome || 0) + (CoapplicantIncome || 0)) }}</td>
+              </tr>
+              <tr>
+                <td>Requested Principal:</td>
+                <td>{{ formatINR((LoanAmount || 0) * 1000) }}</td>
+              </tr>
+              <tr>
+                <td>Loan-to-Income (LTI) Ratio:</td>
+                <td>
+                  {{ (((LoanAmount || 0) * 1000) / Math.max(1, ((ApplicantIncome || 0) + (CoapplicantIncome || 0)) * 12)).toFixed(2) }}x
+                </td>
+              </tr>
+              <tr>
+                <td>Credit Guideline Status:</td>
+                <td>{{ Credit_History == '1' ? 'Compliant (Good)' : 'Non-Compliant (Default Risk)' }}</td>
+              </tr>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>Loan Repayment Prediction System &bull; Academic Project by <strong>Sahil Singh</strong> &bull; Powered by LightGBM & Flask</p>
+    </footer>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        const savedTheme = localStorage.getItem('credi_ai_theme') || 'dark';
+        return {
+          theme: savedTheme,
+          Gender: 'Male',
+          Married: 'Yes',
+          Dependents: '0',
+          Education: 'Graduate',
+          Self_employed: 'No',
+          ApplicantIncome: 5000,
+          CoapplicantIncome: 1500,
+          LoanAmount: 150,
+          Loan_Amount_Term: 360,
+          Credit_History: '1',
+          Property_Area: 'Urban',
+          loading: false,
+          value: null
+        }
+      },
+      mounted() {
+        document.documentElement.setAttribute('data-theme', this.theme);
+      },
+      methods: {
+        toggleTheme() {
+          this.theme = this.theme === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', this.theme);
+          localStorage.setItem('credi_ai_theme', this.theme);
+        },
+        formatINR(val) {
+          return '₹' + Number(val || 0).toLocaleString('en-IN');
+        },
+        loadPreset(type) {
+          if (type === 'prime') {
+            this.Gender = 'Female';
+            this.Married = 'Yes';
+            this.Dependents = '1';
+            this.Education = 'Graduate';
+            this.Self_employed = 'No';
+            this.ApplicantIncome = 7500;
+            this.CoapplicantIncome = 2500;
+            this.LoanAmount = 180;
+            this.Loan_Amount_Term = 360;
+            this.Credit_History = '1';
+            this.Property_Area = 'Semiurban';
+          } else {
+            this.Gender = 'Male';
+            this.Married = 'No';
+            this.Dependents = '3+';
+            this.Education = 'Under Graduate';
+            this.Self_employed = 'Yes';
+            this.ApplicantIncome = 1800;
+            this.CoapplicantIncome = 0;
+            this.LoanAmount = 450;
+            this.Loan_Amount_Term = 360;
+            this.Credit_History = '0';
+            this.Property_Area = 'Rural';
+          }
+          this.call();
+        },
+        call() {
+          this.loading = true;
+          const apiUrl = (window.location.protocol === 'file:' || window.location.port === '8000')
+            ? 'http://127.0.0.1:5000/'
+            : '/api';
+          fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify({
+              Gender: this.Gender,
+              Married: this.Married,
+              Dependents: this.Dependents,
+              Education: this.Education,
+              Self_employed: this.Self_employed,
+              ApplicantIncome: this.ApplicantIncome,
+              CoapplicantIncome: this.CoapplicantIncome,
+              LoanAmount: this.LoanAmount,
+              Loan_Amount_Term: this.Loan_Amount_Term,
+              Credit_History: this.Credit_History,
+              Property_Area: this.Property_Area
+            })
+          })
+          .then(res => {
+            if (!res.ok) throw new Error("HTTP error " + res.status);
+            return res.json();
+          })
+          .then(data => {
+            this.value = data.result;
+          })
+          .catch(err => {
+            console.error("Analysis error:", err);
+            alert("Analysis failed (" + (err.message || err) + "). If running locally, ensure python back_end/main.py is started.");
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>
