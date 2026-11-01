@@ -33,6 +33,8 @@ app = Flask(__name__, static_folder=FRONTEND_DIR)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 @app.route('/', methods=['GET'])
+@app.route('/api', methods=['GET'])
+@app.route('/api/', methods=['GET'])
 def home():
     index_file = os.path.join(FRONTEND_DIR, 'index.html')
     if os.path.exists(index_file):
@@ -47,7 +49,10 @@ def static_files(filename):
     return jsonify({'error': 'Not found'}), 404
 
 @app.route('/', methods=['POST'])
+@app.route('/api', methods=['POST'])
+@app.route('/api/', methods=['POST'])
 @app.route('/predict', methods=['POST'])
+@app.route('/api/predict', methods=['POST'])
 def predict():
     data = request.get_json(silent=True) or {}
 
