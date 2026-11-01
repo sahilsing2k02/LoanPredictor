@@ -8,9 +8,24 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import lightgbm as lgb
 
-BASE_DIR = os.path.dirname(__file__)
-MODEL_FILE = os.path.join(BASE_DIR, 'model.txt')
-FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'front_end'))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+candidate_model_paths = [
+    os.path.join(BASE_DIR, 'model.txt'),
+    os.path.join(os.path.dirname(BASE_DIR), 'api', 'model.txt'),
+    os.path.join(os.path.dirname(BASE_DIR), 'back_end', 'model.txt'),
+    os.path.join(os.getcwd(), 'api', 'model.txt'),
+    os.path.join(os.getcwd(), 'back_end', 'model.txt'),
+    'model.txt'
+]
+MODEL_FILE = next((p for p in candidate_model_paths if os.path.exists(p)), candidate_model_paths[0])
+
+candidate_frontend_paths = [
+    os.path.abspath(os.path.join(BASE_DIR, '..', 'front_end')),
+    os.path.abspath(os.path.join(os.getcwd(), 'front_end')),
+    os.path.abspath(os.path.join(os.path.dirname(BASE_DIR), 'front_end'))
+]
+FRONTEND_DIR = next((p for p in candidate_frontend_paths if os.path.exists(p)), candidate_frontend_paths[0])
 
 bst = lgb.Booster(model_file=MODEL_FILE)
 
