@@ -6,6 +6,11 @@
   <title>CrediAI — Intelligent Loan Credit Decisioning</title>
   <link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
   <script src="./vue.js"></script>
+  <script>
+    if (typeof Vue === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"><\/script>');
+    }
+  </script>
   <style>
     /* CSS Variables: Light & Dark Theme Support */
     :root {
@@ -874,7 +879,7 @@
           this.loading = true;
           const apiUrl = (window.location.protocol === 'file:' || window.location.port === '8000')
             ? 'http://127.0.0.1:5000/'
-            : '/';
+            : '/api';
           fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -904,7 +909,7 @@
           })
           .catch(err => {
             console.error("Analysis error:", err);
-            alert("Error communicating with AI Backend (http://127.0.0.1:5000). Ensure the backend is running.");
+            alert("Analysis failed (" + (err.message || err) + "). If running locally, ensure python back_end/main.py is started.");
           })
           .finally(() => {
             this.loading = false;
