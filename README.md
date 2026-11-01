@@ -38,8 +38,8 @@ Banks often struggle to accurately assess credit risk and loan default probabili
 1. **Clone the Repository**
 
 ```bash
-git clone https://github.com/sahilsingh/default_loan_prediction.git
-cd default_loan_prediction
+git clone https://github.com/sahilsing2k02/LoanPredictor.git
+cd LoanPredictor
 ```
 
 2. **Install Dependencies**
