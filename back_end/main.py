@@ -1,8 +1,3 @@
-"""
-Loan Default Prediction Backend API & Fullstack Server
-Author: Sahil Singh
-"""
-
 import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -35,6 +30,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/', methods=['GET'])
 @app.route('/api', methods=['GET'])
 @app.route('/api/', methods=['GET'])
+@app.route('/api/index.py', methods=['GET'])
 def home():
     index_file = os.path.join(FRONTEND_DIR, 'index.html')
     if os.path.exists(index_file):
@@ -43,6 +39,8 @@ def home():
 
 @app.route('/<path:filename>', methods=['GET'])
 def static_files(filename):
+    if filename in ('api/index.py', 'index.py'):
+        return home()
     file_path = os.path.join(FRONTEND_DIR, filename)
     if os.path.exists(file_path):
         return send_from_directory(FRONTEND_DIR, filename)
@@ -51,6 +49,7 @@ def static_files(filename):
 @app.route('/', methods=['POST'])
 @app.route('/api', methods=['POST'])
 @app.route('/api/', methods=['POST'])
+@app.route('/api/index.py', methods=['POST'])
 @app.route('/predict', methods=['POST'])
 @app.route('/api/predict', methods=['POST'])
 def predict():
