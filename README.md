@@ -50,7 +50,15 @@ pip install -r back_end/requirements.txt
 
 3. **Run the Full Application (Backend + Frontend)**
 
-Double-click `start.bat` or run:
+Run the backend server (serves both API and frontend on port 5000):
+
+```bash
+python back_end/main.py
+```
+
+Then visit: `http://127.0.0.1:5000/`
+
+Or run separately:
 
 ```bash
 # Terminal 1: Backend API
@@ -62,19 +70,11 @@ python -m http.server 8000 --directory front_end
 
 Then visit: `http://127.0.0.1:8000/`
 
-4. **Run the Notebook (Optional)**
-
-Open `challenge-proxym.ipynb` in Jupyter:
-
-```bash
-jupyter notebook challenge-proxym.ipynb
-```
-
 ---
 
 ## 📈 Model Evaluation
 
-* **Best Model:** XGBoost
+* **Best Model:** LightGBM (100-tree ensemble with compiled pure Python AST inference)
 * **ROC-AUC:** High discriminative power
 * **SHAP Values:** Used to interpret individual predictions and global feature impact
 
@@ -85,11 +85,13 @@ jupyter notebook challenge-proxym.ipynb
 * Automated model selection and tuning
 * Transparent credit risk scoring using SHAP
 * Business-focused evaluation for banking applications
+* Zero-dependency pure Python inference engine for instant serverless cloud deployment
 
 ---
 
 ## 📎 Resources
 
+* 📚 [Comprehensive Study Review & Viva Guide](STUDY_REVIEW.md)
 * 📄 [Project Report (PDF)](Automating_bank_credit_processes_using_AI.pdf)
 
 ---
