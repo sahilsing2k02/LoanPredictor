@@ -1,24 +1,39 @@
 """
-Loan Default Prediction Backend API
+Loan Default Prediction Backend API & Fullstack Server
 Author: Sahil Singh
 """
 
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import lightgbm as lgb
 
-MODEL_FILE = os.path.join(os.path.dirname(__file__), 'model.txt')
+BASE_DIR = os.path.dirname(__file__)
+MODEL_FILE = os.path.join(BASE_DIR, 'model.txt')
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'front_end'))
+
 bst = lgb.Booster(model_file=MODEL_FILE)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=FRONTEND_DIR)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'GET':
-        return jsonify({'status': 'running', 'message': 'Loan Default Prediction API is live.'})
+@app.route('/', methods=['GET'])
+def home():
+    index_file = os.path.join(FRONTEND_DIR, 'index.html')
+    if os.path.exists(index_file):
+        return send_from_directory(FRONTEND_DIR, 'index.html')
+    return jsonify({'status': 'running', 'message': 'Loan Default Prediction API is live.'})
 
+@app.route('/<path:filename>', methods=['GET'])
+def static_files(filename):
+    file_path = os.path.join(FRONTEND_DIR, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(FRONTEND_DIR, filename)
+    return jsonify({'error': 'Not found'}), 404
+
+@app.route('/', methods=['POST'])
+@app.route('/predict', methods=['POST'])
+def predict():
     data = request.get_json(silent=True) or {}
 
     def get_or_none(dictionary, key):
@@ -71,4 +86,6 @@ def index():
     return jsonify({'result': float(res[0])})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1')
+    app.run(debug=debug, host='0.0.0.0', port=port)
